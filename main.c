@@ -180,3 +180,29 @@ double*** poolingForwardPass(double*** input, int height, int width, int numFilt
     }
     return output;
 }
+
+typedef struct {
+    int size;
+    int* weights;
+    int* biases;
+} DenseLayer;
+
+DenseLayer* initDenseLayer(int size) {
+    DenseLayer* layer = malloc(sizeof(DenseLayer));
+    layer->size = size;
+    double* weights = malloc(size * sizeof(double));
+    double* biases = malloc(size * sizeof(double));
+    for (int i=0; i<size; i++) {
+        weights[i] = 2.0 * rand() / RAND_MAX - 1.0;
+        biases[i] = 0;
+    }
+    return layer;
+}
+
+double* denseLayerForwardPass(DenseLayer* denseLayer, double*** input, int height, int width, int numFilters) {
+    double* probs = malloc(height * width * numFilters * sizeof(double));
+    for (int i=0; i<height*width*numFilters; i++) {
+        probs[i] = input[i-(i-(i%numFilters))%width][(i-(i%numFilters))%width][i%numFilters] * denseLayer->weights[i] + denseLayer->biases[i];
+    }
+    return probs;
+}
