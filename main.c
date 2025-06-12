@@ -206,3 +206,72 @@ double* denseLayerForwardPass(DenseLayer* denseLayer, double*** input, int heigh
     }
     return probs;
 }
+
+double** sanitizeImage(int** image, int height, int width) {
+    double** output = malloc(height * sizeof(int*));
+    for (int i=0; i<height; i++) {
+        output[i] = malloc(width * sizeof(int));
+        for (int j=0; j<height; j++) {
+            output[i][j] = output[i][j] / 255 - 0.5;
+        }
+    }
+    return output;
+}
+
+int maxArrayIndex(double* array, int size) {
+    double max = array[0];
+    int index = 0;
+    for (int i=0; i<size; i++) {
+        if (array[i] > max) {
+            max = array[i];
+            index = i;
+        }
+    }
+    return index;
+}
+
+double* forwardPass(ConvLayer* convLayer, DenseLayer* denseLayer, int** image, int height, int width) {
+    double** sanitizedImage = sanitizeImage(image, height, width);
+    double*** output = convolutionForwardPass(convLayer,  sanitizedImage, height, width);
+    output = poolingForwardPass(output, height, width, convLayer->numFilters);
+    double* probs = denseLayerForwardPass(denseLayer, output, height, width, convLayer->numFilters);
+    return probs;
+}
+
+double getLoss(double* probs, int label) {
+    return -log(probs[label]);
+}
+
+int getAccuracy(double* probs, int label) {
+    int acc = 0;
+    if (maxArrayIndex(probs, 10) == label) acc = 1;
+    return acc;
+}
+
+void epoch() {
+    int*** testImages = readImages("./MNIST/t10k-images.idx3-ubyte");
+    int* testLabels = readLabels("./MNIST/t10k-labels.idx1-ubyte");
+    int* parameters = readImagesParameters(fopen("./MINST/t10k-images.idx3-ubyte", "rb"));
+    ConvLayer* convLayer = initConvLayer(8, 3);
+    DenseLayer* denseLayer = initDenseLayer(10);
+    printf("CNN Initialized. \n");
+    double loss = 0;
+    int numCorrect = 0;
+    double* probs = malloc(10 * sizeof(double));
+    for (int i=0; i<parameters[1]; i++) {
+        probs = forwardPass(convLayer, denseLayer, testImages, parameters[2], parameters[3]);
+        loss += getLoss(probs, testLabels[i]);
+        numCorrect += getAccuracy(probs, testLabels[i]);
+        if (i%100 ==) 99) {
+            printf("[Step %d] Past 100 steps : Average Loss : %d | Accuracy %d, i+1, loss/100, numCorrect");
+        }
+        loss = 0;
+        numCorrect = 0;
+    }
+}
+
+int main() {
+    srand(time(NULL));
+    epoch();
+    return 0;
+}
