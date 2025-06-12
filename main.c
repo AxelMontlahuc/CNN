@@ -70,3 +70,68 @@ unsigned int* readLabels(char* filename) {
     }
     return labels;
 }
+
+typedef struct {
+    int numFilters;
+    int filterSize;
+    double*** filters;
+} ConvLayer;
+
+ConvLayer* initConvLayer(int numFilters, int filterSize) {
+    ConvLayer* layer = malloc(sizeof(ConvLayer));
+    layer->numFilters = numFilters;
+    layer->filterSize = filterSize;
+    layer->filters = malloc(numFilters * sizeof(double**));
+    for (int i=0; i<numFilters; i++) {
+        layer->filters[i] = malloc(filterSize * sizeof(double*));
+        for (int j=0; j<filterSize; j++) {
+            layer->filters[i][j] = malloc(filterSize * sizeof(double));
+            for (int k=0; k<filterSize; k++) {
+                layer->filters[i][j][k] = (2.0 * rand() / RAND_MAX - 1.0) / 3.0;
+            }
+        }
+    }
+    return layer;
+}
+
+double**** subImagesExtractionForConvolution(double** image, int height, int width) {
+    double**** subImage = malloc((height-2) * sizeof(int***));
+    for (int i=0; i<(height-2); i++) {
+        subImage[i] = malloc((width-2) * sizeof(int**));
+        for (int j=0; j<(width-2); j++) {
+            subImage[i][j] = malloc(3 * sizeof(int*));
+            for (int k=0; k<3; k++) {
+                subImage[i][j][k] = malloc(3 * sizeof(int));
+                for (int l=0; l<3; l++) {
+                    subImage[i][j][k][l] = image[j+l][i+k];
+                }
+            }
+        }
+    }
+    return subImage;
+}
+
+double convolution(double** filter, double** matrix) {
+    double sum = 0;
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<3; j++) {
+            sum += matrix[i][j] * filter[i][j];
+        }
+    }
+    return sum;
+}
+
+double*** convolutionForwardPass(ConvLayer* convLayer, double** image, int height, int width) {
+    double**** grid= subImagesExtractionForConvolution(image, height, width);
+    double*** conv = malloc((height-2) * sizeof(int**));
+    for (int i=0; i<(height-2); i++) {
+        conv[i] = malloc((width-2) * sizeof(int*));
+        for (int j=0; j<(width-1); j++) {
+            conv[i][j] = malloc(convLayer->filterSize * sizeof(int));
+            for (int k=0; k<convLayer->filterSize; k++) {
+                conv[i][j][k] = convolution(convLayer->filters[k], grid[i][j]);
+            }
+        }
+    }
+    return conv;
+}
