@@ -135,3 +135,48 @@ double*** convolutionForwardPass(ConvLayer* convLayer, double** image, int heigh
     }
     return conv;
 }
+
+double***** subImagesExtractionForPooling(double*** image, int height, int width, int numFilters) {
+    double ***** subImage = malloc((height/2) * sizeof(int****));
+    for (int i=0; i<(height/2); i++) {
+        subImage[i] = malloc((width-2) * sizeof(int***));
+        for (int j=0; j<(width/2); j++) {
+            subImage[i][j] = malloc((width/2) * sizeof(int**));
+            for (int k=0; k<2; k++) {
+                subImage[i][j][k] = malloc(2 * sizeof(int*));
+                for (int l=0; l<2; l++) {
+                    subImage[i][j][k][l] = malloc(numFilters * sizeof(int));
+                    for (int m=0; m<numFilters; m++) {
+                        subImage[i][j][k][l][m] = image[2*j+l][2*i+k][m];
+                    }
+                }
+            }
+        }
+    }
+    return subImage;
+}
+
+double matrixMax(double*** matrix, int height, int width, int cFilter) {
+    double max = matrix[0][0][cFilter];
+    for (int i=0; i<height; i++) {
+        for (int j=0; j<width; j++) {
+            if (matrix[i][j][cFilter] > max) max = matrix[i][j][cFilter];
+        }
+    }
+    return max;
+}
+
+double*** poolingForwardPass(double*** input, int height, int width, int numFilters) {
+    double***** grid = subImagesExtractionForPooling(input, height, width, numFilters);
+    double*** output = malloc((height/2) * sizeof(int**));
+    for (int i=0; i<(height/2); i++) {
+        output[i] = malloc((width/2) * sizeof(int*));
+        for (int j=0; j<(width/2); j++) {
+            output[i][j] = malloc(numFilters * sizeof(int));
+            for (int k=0; k<numFilters; k++) {
+                output[i][j][k] = matrixMax(grid[i][j], 2, 2, k);
+            }
+        }
+    }
+    return output;
+}
