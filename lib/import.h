@@ -6,9 +6,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-uint32_t swapEndian(uint32_t val);
 int* readParameters(char* filename);
-double** readImage(FILE* f, int width, int height);
 double*** readImages(char* filename);
 int* readLabels(char* filename);
 

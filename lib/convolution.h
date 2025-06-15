@@ -14,8 +14,6 @@ typedef struct {
 
 ConvLayer* initConvLayer(int numFilters, int filterSize);
 void freeConvLayer(ConvLayer* layer);
-double** convolutionGrid(double** image, int width, int height, int divisor);
-double convolution(double** filter, double* cell);
 double** convolutionForward(ConvLayer* convLayer, double** image, int width, int height, int divisor);
 
 #endif
