@@ -6,6 +6,6 @@
 #include <assert.h>
 
 double tabMax(double* tab, int size);
-double** poolingForward(double** input, int width, int height, int numFilters);
+double* poolingForward(double** input, int width, int height, int numFilters);
 
 #endif

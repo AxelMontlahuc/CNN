@@ -5,6 +5,28 @@
 
 #include "convolution.h"
 
+double randn() {
+    static int hasSpare = 0;
+    static double spare;
+    
+    if (hasSpare) {
+        hasSpare = 0;
+        return spare;
+    }
+
+    hasSpare = 1;
+    double u, v, s;
+    do {
+        u = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+        v = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+        s = u * u + v * v;
+    } while (s >= 1.0 || s == 0.0);
+
+    s = sqrt(-2.0 * log(s) / s);
+    spare = v * s;
+    return u * s;
+}
+
 ConvLayer* initConvLayer(int numFilters, int filterSize) {
     ConvLayer* layer = malloc(sizeof(ConvLayer));
     assert(layer != NULL);
@@ -20,8 +42,9 @@ ConvLayer* initConvLayer(int numFilters, int filterSize) {
         for (int j=0; j<filterSize; j++) {
             layer->filters[i][j] = malloc(filterSize * sizeof(double));
             for (int k=0; k<filterSize; k++) {
-                double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)filterSize * (double)filterSize * ((double)numFilters + 1.0)));
-                layer->filters[i][j][k] = xavierInit;
+                //double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)filterSize * (double)filterSize * ((double)numFilters + 1.0)));
+                double heInit = randn() * sqrt(2.0 / ((double)filterSize * (double)filterSize));
+                layer->filters[i][j][k] = heInit;
             }
         }
     }
@@ -55,7 +78,6 @@ double** convolutionGrid(double** image, int width, int height, int divisor) {
             }
 
             grid[i * (height - (divisor-1)) + j] = cell;
-            free(cell);
         }
     }
     return grid;

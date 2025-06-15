@@ -14,7 +14,7 @@ double tabMax(double* tab, int size) {
     return max;
 }
 
-double** poolingForward(double** input, int width, int height, int numFilters) {
+double* poolingForward(double** input, int width, int height, int numFilters) {
     double** output = malloc(width * height * sizeof(double));
     assert(output != NULL);
 
@@ -35,5 +35,20 @@ double** poolingForward(double** input, int width, int height, int numFilters) {
             free(cell);
         }
     }
-    return output;
+
+    double* flatOutput = malloc(width * height * numFilters * sizeof(double));
+    assert(flatOutput != NULL);
+
+    for (int i=0; i<numFilters; i++) {
+        for (int j=0; j<width*height; j++) {
+            flatOutput[i*width*height+j] = output[j][i];
+        }
+    }
+
+    for (int i=0; i<width*height; i++) {
+        free(output[i]);
+    }
+    free(output);
+
+    return flatOutput;
 }

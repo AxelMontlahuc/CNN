@@ -14,6 +14,6 @@ typedef struct {
 
 DenseLayer* initDenseLayer(int size, int width, int height, int numFilters);
 void freeDenseLayer(DenseLayer* layer);
-double* denseForward(DenseLayer* denseLayer, double** input, int width, int height, int numFilters);
+double* denseForward(DenseLayer* denseLayer, double* input, int width, int height, int numFilters);
 
 #endif

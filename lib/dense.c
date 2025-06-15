@@ -5,6 +5,28 @@
 
 #include "dense.h"
 
+double randn2() {
+    static int hasSpare = 0;
+    static double spare;
+    
+    if (hasSpare) {
+        hasSpare = 0;
+        return spare;
+    }
+
+    hasSpare = 1;
+    double u, v, s;
+    do {
+        u = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+        v = ((double)rand() / RAND_MAX) * 2.0 - 1.0;
+        s = u * u + v * v;
+    } while (s >= 1.0 || s == 0.0);
+
+    s = sqrt(-2.0 * log(s) / s);
+    spare = v * s;
+    return u * s;
+}
+
 DenseLayer* initDenseLayer(int size, int width, int height, int numFilters) {
     DenseLayer* layer = malloc(sizeof(DenseLayer));
     assert(layer != NULL);
@@ -20,8 +42,9 @@ DenseLayer* initDenseLayer(int size, int width, int height, int numFilters) {
         assert(layer->weights[i] != NULL);
 
         for (int j=0; j<width*height*numFilters; j++) {
-            double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)width * (double)height * (double)numFilters + 10.0));
-            layer->weights[i][j] = xavierInit;
+            // double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)width * (double)height * (double)numFilters + 10.0));
+            double heInit = randn2() * sqrt(2.0 / ((double)width * (double)height * (double)numFilters));
+            layer->weights[i][j] = heInit; // He initialization
         }
     }
     return layer;
@@ -36,25 +59,15 @@ void freeDenseLayer(DenseLayer* layer) {
     free(layer);
 }
 
-double* denseForward(DenseLayer* denseLayer, double** input, int width, int height, int numFilters) {
-    double* flatInput = malloc(width * height * numFilters * sizeof(double));
-    assert(flatInput != NULL);
-
-    for (int i=0; i<numFilters; i++) {
-        for (int j=0; j<width*height; j++) {
-            flatInput[i*width*height+j] = input[j][i];
-        }
-    }
-
+double* denseForward(DenseLayer* denseLayer, double* input, int width, int height, int numFilters) {
     double* output = malloc(denseLayer->size * sizeof(double));
     for (int i=0; i<denseLayer->size; i++) {
         output[i] = 0.0;
         for (int j=0; j<width*height*numFilters; j++) {
-            output[i] += flatInput[j] * denseLayer->weights[i][j];
+            output[i] += input[j] * denseLayer->weights[i][j];
         }
         output[i] += denseLayer->biases[i];
     }
 
-    free(flatInput);
     return output;
 }
