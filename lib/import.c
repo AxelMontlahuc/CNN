@@ -50,11 +50,26 @@ double** readImage(FILE* f, int width, int height) {
     return image;
 }
 
-double*** readImages(char* filename, int numImages, int width, int height) {
+double*** readImages(char* filename) {
     FILE* f = fopen(filename, "rb");
+
+    int magicNumber;
+    int numImages;
+    int height;
+    int width;
+
+    (void) !fread(&magicNumber, sizeof(uint32_t), 1, f);
+    (void) !fread(&numImages, sizeof(uint32_t), 1, f);
+    (void) !fread(&height, sizeof(unsigned int), 1, f);
+    (void) !fread(&width, sizeof(unsigned int), 1, f);
+
+    magicNumber = (int)swapEndian(magicNumber);
+    numImages = (int)swapEndian(numImages);
+    height = (int)swapEndian(height);
+    width = (int)swapEndian(width);
+
     double*** images = malloc(numImages * sizeof(double**));
     assert(images != NULL && f != NULL);
-
     for (int i=0; i<numImages; i++) {
         images[i] = readImage(f, width, height);
     }
@@ -63,7 +78,7 @@ double*** readImages(char* filename, int numImages, int width, int height) {
     return images;
 }
 
-int* readLabels(char* filename, int numImages) {
+/*int* readLabels(char* filename, int numImages) {
     FILE* f = fopen(filename, "rb");
     int* labels = malloc(numImages * sizeof(int));
     assert(labels != NULL && f != NULL);
@@ -73,6 +88,32 @@ int* readLabels(char* filename, int numImages) {
 
     for (int i=0; i<numImages; i++) {
         labels[i] = (int)buffer[i];
+        printf("Label[%d]: %d\n", i, labels[i]);
+    }
+
+    fclose(f);
+    return labels;
+}*/
+
+int* readLabels(char* filename) {
+    FILE* f = fopen(filename, "rb");
+    assert(f != NULL);
+
+    int magicNumber;
+    int numLabels;
+    (void) !fread(&magicNumber, sizeof(uint32_t), 1, f);
+    (void) !fread(&numLabels, sizeof(uint32_t), 1, f);
+    magicNumber = (int)swapEndian(magicNumber);
+    numLabels = (int)swapEndian(numLabels);
+
+    int* labels = malloc(numLabels * sizeof(int));
+    assert(labels != NULL);
+    unsigned char buffer[numLabels];
+    (void) !fread(buffer, sizeof(unsigned char), numLabels, f);
+    
+    for (int i=0; i<numLabels; i++) {
+        labels[i] = (int)buffer[i];
+        // printf("Label[%d]: %d\n", i, labels[i]);
     }
 
     fclose(f);

@@ -9,7 +9,7 @@
 uint32_t swapEndian(uint32_t val);
 int* readParameters(char* filename);
 double** readImage(FILE* f, int width, int height);
-double*** readImages(char* filename, int numImages, int width, int height);
-int* readLabels(char* filename, int numImages);
+double*** readImages(char* filename);
+int* readLabels(char* filename);
 
 #endif
