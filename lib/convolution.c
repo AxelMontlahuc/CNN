@@ -5,7 +5,7 @@
 
 #include "convolution.h"
 
-double randn() {
+double convBoxMuller() {
     static int hasSpare = 0;
     static double spare;
     
@@ -42,8 +42,7 @@ ConvLayer* initConvLayer(int numFilters, int filterSize) {
         for (int j=0; j<filterSize; j++) {
             layer->filters[i][j] = malloc(filterSize * sizeof(double));
             for (int k=0; k<filterSize; k++) {
-                //double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)filterSize * (double)filterSize * ((double)numFilters + 1.0)));
-                double heInit = randn() * sqrt(2.0 / ((double)filterSize * (double)filterSize));
+                double heInit = convBoxMuller() * sqrt(2.0 / ((double)filterSize * (double)filterSize));
                 layer->filters[i][j][k] = heInit;
             }
         }

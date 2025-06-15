@@ -48,7 +48,7 @@ void train(ConvLayer* convLayer, DenseLayer* denseLayer, int epoch, double learn
             l += loss(probs, testLabels[i]);
             correct += accuracy(probs, testLabels[i], denseLayer->size);
             if (i%1000 == 999) {
-                printf("[Epoch %d][Step %d] Past 1000 steps : Average Loss: %f | Accuracy: %d%%\n", j, i+1, l/1000, correct/10);
+                printf("[Epoch %d][Step %d] Past 1000 steps : Average Loss: %f | Accuracy: %d%%\n", j+1, i+1, l/1000, correct/10);
                 l = 0;
                 correct = 0;
             }

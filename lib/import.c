@@ -113,7 +113,6 @@ int* readLabels(char* filename) {
     
     for (int i=0; i<numLabels; i++) {
         labels[i] = (int)buffer[i];
-        // printf("Label[%d]: %d\n", i, labels[i]);
     }
 
     fclose(f);

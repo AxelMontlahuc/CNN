@@ -5,7 +5,7 @@
 
 #include "dense.h"
 
-double randn2() {
+double denseBoxMuller() {
     static int hasSpare = 0;
     static double spare;
     
@@ -42,9 +42,8 @@ DenseLayer* initDenseLayer(int size, int width, int height, int numFilters) {
         assert(layer->weights[i] != NULL);
 
         for (int j=0; j<width*height*numFilters; j++) {
-            // double xavierInit = (2.0 * ((double)rand() / (double)RAND_MAX) - 1.0) * sqrt(6.0 / ((double)width * (double)height * (double)numFilters + 10.0));
-            double heInit = randn2() * sqrt(2.0 / ((double)width * (double)height * (double)numFilters));
-            layer->weights[i][j] = heInit; // He initialization
+            double heInit = denseBoxMuller() * sqrt(2.0 / ((double)width * (double)height * (double)numFilters));
+            layer->weights[i][j] = heInit;
         }
     }
     return layer;
