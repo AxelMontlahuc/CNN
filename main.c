@@ -28,54 +28,77 @@ double* forward(ConvLayer* convLayer, DenseLayer* denseLayer, double** image, in
     return probs;
 }
 
-void epoch() {
+void train(ConvLayer* convLayer, DenseLayer* denseLayer, int epoch, double learningRate) {
     char* imagesPath = "./MNIST/train-images.idx3-ubyte";
     char* labelsPath = "./MNIST/train-labels.idx1-ubyte";
     int* parameters = readParameters(imagesPath);
     double*** testImages = readImages(imagesPath);
     int* testLabels = readLabels(labelsPath);
 
-    ConvLayer* convLayer = initConvLayer(8, 3);
-    DenseLayer* denseLayer = initDenseLayer(10, 13, 13, 8);
-
-    printf("CNN Initialized. \n");
     printf("Number of images: %d\n", parameters[0]);
     printf("Heigt: %d\n", parameters[1]);
     printf("Width: %d\n", parameters[2]);
     
-    double l = 0;
-    int correct = 0;
-    double* probs = NULL;
-    for (int i=0; i<10000; i++) {
-        // printf("Label: %d | ", testLabels[i]);
-        //probs = forward(convLayer, denseLayer, testImages[i], parameters[1], parameters[2], 3);
-        probs = backpropagation(convLayer, denseLayer, testImages[i], parameters[1], parameters[2], 3, testLabels[i], 0.05);
-        l += loss(probs, testLabels[i]);
-        correct += accuracy(probs, testLabels[i], denseLayer->size);
-        if (i%1000 == 999) {
-            printf("[Step %d] Past 100 steps : Average Loss: %f | Accuracy: %d%%\n", i+1, l/1000, correct/10);
-            l = 0;
-            correct = 0;
-            for (int j=0; j<denseLayer->size; j++) {
-                printf("Prob[%d]: %f | ", j, probs[j]);
+    double* probs = malloc(denseLayer->size * sizeof(double));
+    for (int j=0; j<epoch; j++) {
+        double l = 0;
+        int correct = 0;
+        for (int i=0; i<parameters[0]; i++) {
+            probs = backpropagation(convLayer, denseLayer, testImages[i], parameters[1], parameters[2], convLayer->filterSize, testLabels[i], learningRate);
+            l += loss(probs, testLabels[i]);
+            correct += accuracy(probs, testLabels[i], denseLayer->size);
+            if (i%1000 == 999) {
+                printf("[Epoch %d][Step %d] Past 1000 steps : Average Loss: %f | Accuracy: %d%%\n", j, i+1, l/1000, correct/10);
+                l = 0;
+                correct = 0;
             }
-            printf("\n");
         }
-        free(probs);
-        probs = NULL;
     }
 
     free(probs);
-    freeDenseLayer(denseLayer);
-    freeConvLayer(convLayer);
     free(testImages);
     free(testLabels);
     free(parameters);
-    printf("Epoch completed.\n");
+    printf("Training completed.\n\n");
+}
+
+void test(ConvLayer* convLayer, DenseLayer* denseLayer) {
+    char* imagesPath = "./MNIST/t10k-images.idx3-ubyte";
+    char* labelsPath = "./MNIST/t10k-labels.idx1-ubyte";
+    int* parameters = readParameters(imagesPath);
+    double*** testImages = readImages(imagesPath);
+    int* testLabels = readLabels(labelsPath);
+
+    printf("Testing CNN on %d images...\n", parameters[0]);
+    
+    double* probs = malloc(denseLayer->size * sizeof(double));
+    double l = 0;
+    int correct = 0;
+    for (int i=0; i<parameters[0]; i++) {
+        probs = forward(convLayer, denseLayer, testImages[i], parameters[1], parameters[2], convLayer->filterSize);
+        l += loss(probs, testLabels[i]);
+        correct += accuracy(probs, testLabels[i], denseLayer->size);
+    }
+    printf("\n|----------------------------------------|\n| Average Loss: %f | Accuracy: %d%% |\n|----------------------------------------|\n\n", l/parameters[0], correct*100/parameters[0]);
+
+    free(probs);
+    free(testImages);
+    free(testLabels);
+    free(parameters);
+    printf("Testing completed.\n");
 }
 
 int main() {
     srand(time(NULL));
-    epoch();
+
+    ConvLayer* convLayer = initConvLayer(8, 3);
+    DenseLayer* denseLayer = initDenseLayer(10, 13, 13, 8);
+    printf("CNN Initialized. \n");
+
+    train(convLayer, denseLayer, 1, 0.005);
+    test(convLayer, denseLayer);
+
+    freeConvLayer(convLayer);
+    freeDenseLayer(denseLayer);
     return 0;
 }
